@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to CSV Converter</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        .drop-zone.active {
+            border-color: #0d6efd;
+            background-color: #e9f0ff;
+        }
+        .file-info {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .preview-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .nav-tabs {
+            margin-bottom: 15px;
+        }
+        .settings-panel {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .match-results {
+            margin-top: 20px;
+        }
+        .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Text to CSV Converter</h1>
+        
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">Welcome!</h4>
+            <p>This tool converts text files to CSV format and can match experimental and predicted data based on m/z values.</p>
+            <hr>
+            <p class="mb-0">Upload your text files below to get started.</p>
+        </div>
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="convert-tab" data-bs-toggle="tab" data-bs-target="#convert" type="button" role="tab" aria-controls="convert" aria-selected="true">Convert</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="match-tab" data-bs-toggle="tab" data-bs-target="#match" type="button" role="tab" aria-controls="match" aria-selected="false">Match Data</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button" role="tab" aria-controls="help" aria-selected="false">Help</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!-- Convert Tab -->
+            <div class="tab-pane fade show active" id="convert" role="tabpanel" aria-labelledby="convert-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>Upload Text File</h3>
+                        <div id="dropZone" class="drop-zone">
+                            <div id="dropText">
+                                <p>Drag & drop your text file here or</p>
+                                <input type="file" id="fileInput" class="d-none">
+                                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                            </div>
+                            <div id="fileInfo" class="file-info"></div>
+                        </div>
+
+                        <div class="settings-panel">
+                            <h4>Settings</h4>
+                            <div class="mb-3">
+                                <label for="delimiterSelect" class="form-label">Delimiter</label>
+                                <select class="form-select" id="delimiterSelect">
+                                    <option value="auto">Auto-detect</option>
+                                    <option value="tab">Tab</option>
+                                    <option value="space">Space</option>
+                                    <option value="comma">Comma</option>
+                                    <option value="semicolon">Semicolon</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="normalizeCheck" checked>
+                                    <label class="form-check-label" for="normalizeCheck">
+                                        Normalize intensity to max 100
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="headerCheck">
+                                    <label class="form-check-label" for="headerCheck">
+                                        File has header row
+                                    </label>
+                                </div>
+                            </div>
+                            <button id="convertBtn" class="btn btn-success" disabled>
+                                <span id="convertSpinner" class="spinner-border hidden" role="status" aria-hidden="true"></span>
+                                Convert to CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h3>Preview</h3>
+                        <div class="preview-container">
+                            <div id="previewContent">
+                                <p class="text-muted">File preview will appear here...</p>
+                            </div>
+                        </div>
+                        <div id="downloadContainer" class="hidden">
+                            <button id="downloadBtn" class="btn btn-primary">
+                                <i class="bi bi-download"></i> Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Tab -->
+            <div class="tab-pane fade" id="match" role="tabpanel" aria-labelledby="match-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h3>Experimental Data</h3>
+                        <div id="expDropZone" class="drop-zone">
+                            <div id="expDropText">
+                                <p>Drag & drop experimental data file here or</p>
+                                <input type="file" id="expFileInput" class="d-none">
+                                <button class="btn btn-primary" onclick="document.getElementById('expFileInput').click()">Browse Files</button>
+                            </div>
+                            <div id="expFileInfo" class="file-info"></div>
+                        </div>
+
+                        <h3>Predicted Data</h3>
+                        <div id="predDropZone" class="drop-zone">
+                            <div id="predDropText">
+                                <p>Drag & drop predicted data file here or</p>
+                                <input type="file" id="predFileInput" class="d-none">
+                                <button class="btn btn-primary" onclick="document.getElementById('predFileInput').click()">Browse Files</button>
+                            </div>
+                            <div id="predFileInfo" class="file-info"></div>
+                        </div>
+
+                        <div class="settings-panel">
+                            <h4>Matching Settings</h4>
+                            <div class="mb-3">
+                                <label for="toleranceInput" class="form-label">m/z Tolerance</label>
+                                <input type="number" class="form-control" id="toleranceInput" value="0.01" step="0.001" min="0.0001">
+                                <div class="form-text">Maximum allowed difference between m/z values for matching.</div>
+                            </div>
+                            <button id="matchBtn" class="btn btn-success" disabled>
+                                <span id="matchSpinner" class="spinner-border hidden" role="status" aria-hidden="true"></span>
+                                Match Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h3>Match Results</h3>
+                        <div id="matchResults" class="match-results">
+                            <p class="text-muted">Match results will appear here...</p>
+                        </div>
+                        <div id="matchDownloadContainer" class="hidden">
+                            <button id="downloadMatchedBtn" class="btn btn-primary">
+                                <i class="bi bi-download"></i> Download Matched Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Tab -->
+            <div class="tab-pane fade" id="help" role="tabpanel" aria-labelledby="help-tab">
+                <h3>Help & Documentation</h3>
+                <div class="accordion" id="helpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Supported File Formats
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <p>This tool supports various text file formats:</p>
+                                <ul>
+                                    <li><strong>Experimental Data:</strong> Space or tab-delimited files with m/z and intensity values</li>
+                                    <li><strong>Predicted Data:</strong> Files with energy level sections and multiple peaks per energy level</li>
+                                    <li>Files with or without headers</li>
+                                    <li>Files with comment lines (starting with #)</li>
+                                </ul>
+                                <p>Example of experimental data format:</p>
+                                <pre>100.0123 5000.25
+101.2345 3456.78
+102.3456 2345.67</pre>
+                                <p>Example of predicted data format:</p>
+                                <pre>energy0
+136.06177 75.41 3 36 50 39 37 49 33 45
+298.09684 100.00 0 109 112 120 139 142
+energy1
+134.04612 3.47 35 38
+136.06177 100.00 3 33 39 50 45 36 37 49</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                How to Convert Files
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Go to the <strong>Convert</strong> tab</li>
+                                    <li>Drag and drop your text file or click "Browse Files"</li>
+                                    <li>Adjust settings if needed:
+                                        <ul>
+                                            <li>Delimiter: Choose the character that separates columns in your file</li>
+                                            <li>Normalize intensity: Scale intensity values to a maximum of 100</li>
+                                            <li>Header row: Check if your file has a header row</li>
+                                        </ul>
+                                    </li>
+                                    <li>Click "Convert to CSV"</li>
+                                    <li>Preview the converted data</li>
+                                    <li>Click "Download CSV" to save the result</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                How to Match Data
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Go to the <strong>Match Data</strong> tab</li>
+                                    <li>Upload both experimental and predicted data files</li>
+                                    <li>Set the m/z tolerance value (default: 0.01)</li>
+                                    <li>Click "Match Data"</li>
+                                    <li>Review the match results</li>
+                                    <li>Click "Download Matched Data" to save the matched datasets</li>
+                                </ol>
+                                <p>The matching algorithm finds pairs of peaks from both datasets where the m/z values differ by less than the specified tolerance.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Troubleshooting
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#helpAccordion">
+                            <div class="accordion-body">
+                                <h5>Common Issues:</h5>
+                                <ul>
+                                    <li><strong>File not parsing correctly:</strong> Try selecting a different delimiter</li>
+                                    <li><strong>No matches found:</strong> Try increasing the m/z tolerance value</li>
+                                    <li><strong>Browser performance issues:</strong> Large files may cause slowdowns; try splitting into smaller files</li>
+                                    <li><strong>Download not working:</strong> Some browsers may block downloads; check your browser settings</li>
+                                </ul>
+                                <p>If you encounter persistent issues, try using a different browser or contact support.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Math.js for numeric operations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+    <!-- FileSaver.js for file downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="js/app.js"></script>
+</body>
+</html>
