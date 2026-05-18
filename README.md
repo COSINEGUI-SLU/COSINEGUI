@@ -12,7 +12,6 @@ Download the latest version from the **Releases** section.
 
 ## How to Run
 
-After downloading `COSINE.jar`, run:
+After downloading `COSINEGUI app`, install in windows.
 
-```bash
-java -jar COSINE.jar
+
