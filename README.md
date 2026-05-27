@@ -16,3 +16,5 @@ After downloading `COSINEGUI app`, install in windows.
 
 #Run Text To CSV converter to convert your text files to CSV
 Uplaod the CSV files to the COSINEGUI App. 
+
+Test the COSine GUI Application using Experimental and Predicted Test Files Containing Reference Compounds.
