@@ -1,0 +1,28 @@
+COSine v1.7.3 - Windows startup help
+=====================================
+
+If Windows reports "awt.dll: Access is denied", Windows or OneDrive is
+blocking the bundled Java runtime. This is not a COSine calculation error.
+
+Recommended method
+------------------
+1. Move the downloaded ZIP outside OneDrive, for example to C:\COSine-v1.7.3.
+2. Right-click the ZIP, select Properties, select Unblock, and click Apply.
+3. Extract the entire ZIP.
+4. Double-click COSine-v1.7.3.exe.
+
+Immediate command
+-----------------
+Open Command Prompt in the folder containing the JAR and run:
+
+java -jar COSine-v1.7.3.jar
+
+If Windows still blocks the bundled runtime
+--------------------------------------------
+1. Delete the currently extracted folder.
+2. Move the downloaded ZIP outside OneDrive, for example to C:\COSine-v1.7.3.
+3. Right-click the ZIP, select Properties, select Unblock, and click Apply.
+4. Extract the ZIP there and run COSine-v1.7.3.exe.
+5. If necessary, install Java 17 and use Run-COSine-v1.7.3.bat as the fallback launcher.
+
+The application and mirror-plot titles must display COSine v1.7.3.

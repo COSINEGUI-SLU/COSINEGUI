@@ -1,0 +1,41 @@
+COSine v1.7.3 test instructions
+================================
+
+1. Extract the entire ZIP, then double-click COSine-v1.7.3.exe.
+   The ZIP includes its own Java runtime, so a separate Java installation is not required.
+2. For the cleanest phenytoin test, load the original files directly:
+   Experimental: Phenytoin_NEG_X.txt
+   Predicted:    Phenytoin_NEG_P.txt
+3. Select "Pooled CE (maximum raw intensity)".
+4. Use min m/z 70, max m/z 1000, Absolute (Da), tolerance 0.005,
+   minimum relative intensity 1%, and maximum peaks 10.
+5. Run Similarity, then open Matched Peaks and Mirror Plot.
+
+Expected direct-TXT result:
+  Experimental peaks: 10
+  Predicted peaks:      5
+  Matched peaks:        3
+  Standard cosine:      0.5172
+  Square-root cosine:   0.6995
+  Weighted cosine:      0.9437 (m/z exponent 3.0, intensity exponent 0.6)
+  Binary cosine:        0.4243
+  Reverse cosine:       0.5208
+
+Expected matched m/z pairs include:
+  102.0351600 <-> 102.0349227
+  208.0776100 <-> 208.0767875
+  251.0821400 <-> 251.0826012
+
+The rounded two-decimal CSV files give only two matches because 102.04 and 102.03
+are 0.01 Da apart. If the matching TXT files are beside those CSVs,
+the app asks whether to switch to the source-precision files. Choose Yes.
+
+Alternatively, use the two files in example-data\precision-corrected. These
+retain the same peak selection but restore source m/z precision.
+With those corrected CSVs, the expected result is 9 experimental peaks,
+4 predicted peaks, 3 matches, and standard cosine 0.5178.
+
+The mirror-plot title and window must display COSine v1.7.3. If peaks have
+been zoomed or panned out of view, click Reset Zoom / Show All Peaks.
+
+The HTML converter is not required. COSine v1.7.3 reads source TXT files directly.
